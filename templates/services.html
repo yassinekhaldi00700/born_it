@@ -218,7 +218,6 @@
     function showConfirm(reset) {
         var body = document.getElementById(reset.bodyId);
         body.innerHTML = "";
-        body.appendChild(el("p", "warn", "⚠ " + reset.warning));
 
         var actions = el("div", "actions");
         var cancel = el("button", "btn btn-light", "Annuler");
@@ -274,18 +273,15 @@
 
     var resets = {
         outlook: {
-            modalId: "modal_outlook", bodyId: "outlook_body", endpoint: "/resetoutlook",
-            warning: "Votre mot de passe Outlook actuel ne fonctionnera plus. Un nouveau mot de passe va s'afficher."
+            modalId: "modal_outlook", bodyId: "outlook_body", endpoint: "/resetoutlook"
         },
         print: {
             // The AD account is the printer account. Teachers: part of the e-mail before "@".
             modalId: "modal_print", bodyId: "print_body",
-            endpoint: userType === "teacher" ? "/resetAD1" : "/resetAD",
-            warning: "Votre mot de passe d'impression actuel ne fonctionnera plus. Un nouveau mot de passe va s'afficher."
+            endpoint: userType === "teacher" ? "/resetAD1" : "/resetAD"
         },
         konosys: {
-            modalId: "modal_konosys", bodyId: "konosys_body", endpoint: "/resetkonosys",
-            warning: "Votre mot de passe Konosys actuel ne fonctionnera plus. Un nouveau mot de passe va s'afficher."
+            modalId: "modal_konosys", bodyId: "konosys_body", endpoint: "/resetkonosys"
         }
     };
 
