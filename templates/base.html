@@ -1,0 +1,24 @@
+{# Layout shared by every kiosk page. Bump asset_v when kiosk.css / kiosk.js change,
+   so the kiosk browser does not keep an old cached copy. #}
+{% set asset_v = "2026-10-09c" %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Borne de services UEMF{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/kiosk.css') }}?v={{ asset_v }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="k-page {% block body_class %}{% endblock %}" data-auto-return="{% block auto_return %}0{% endblock %}" {% block body_attrs %}{% endblock %}>
+    <!-- Card reader: a card swipe on any page goes straight to /result -->
+    <form id="input_form" action="/result" method="post">
+        <input type="text" id="hidden_input" name="user_input" autocomplete="off" oninput="fixCardInput(this)" onkeypress="handleKeyPress(event)" autofocus>
+    </form>
+
+    {% block content %}{% endblock %}
+
+    <script src="{{ url_for('static', filename='js/kiosk.js') }}?v={{ asset_v }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

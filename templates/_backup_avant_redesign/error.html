@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Result</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <style>
+         #hidden_input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%; /* Ajuste selon le besoin */
+            height: 100%; /* Le champ couvre tout l'écran */
+            opacity: 0; /* Champ invisible */
+            cursor: none;
+            background-color: transparent;
+        }
+    </style>
+</head>
+<body>
+
+ <form id="input_form" action="/result"  method="post">
+        <input type="text" id="hidden_input" name="user_input" oninput="fixCardInput(this)" onkeypress="handleKeyPress(event)" autofocus>
+    </form>
+    <!-- <h1 class="text-green-700 text-2xl font-bold mt-8 ml-4">Bonjour {{ student_name }}</h1> -->
+
+        <div class="absolute top-2 right-2 ">
+            <button onclick="goToIndexPage()">
+                <p class="text-xl mr-4 font-bold">Log Out</p>
+                <svg xmlns="http://www.w3.org/2000/svg" height="4em" viewBox="0 0 512 512" class="shadow-md ml-2 shadow-gray-400"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"/></svg>
+            </button>
+        </div>
+            <p id="phrase" class="font-bold text-xl text-red-800 text-center mt-39">{{ error_code }}</p>
+        {% if error_detail %}
+        <pre class="relative z-10 mx-8 mt-24 p-4 max-h-96 overflow-auto text-left text-sm bg-gray-900 text-green-300 rounded">{{ error_detail }}</pre>
+        {% endif %}
+        <DIV class="{{ 'mt-8' if error_detail else 'h-screen' }} flex items-center justify-center">
+            <p id="phrase" class="font-bold text-3xl text-red-800 text-center mt-39">Contactez la DSI · 2ème étage, Bâtiment administratif</p>
+        </DIV>
+        
+  
+
+
+             
+        <script>
+            function goToIndexPage() {
+                window.location.href = "/"; 
+                
+            }
+            // Leave the Python error on screen longer so it can be read
+            setInterval(goToIndexPage, {{ 30000 if error_detail else 5000 }});
+            
+        </script>
+<script>
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                const userInput = document.getElementById("hidden_input").value;
+
+                if (userInput.length >= 8) {
+                    document.getElementById("input_form").submit(); // Soumettre le formulaire
+                    document.getElementById("hidden_input").value = ""; // Réinitialiser le champ
+                }
+            }
+        }
+
+        document.getElementById("hidden_input").addEventListener("focus", () => {
+        console.log("Input focused");
+    });
+    
+    function fixCardInput(input) {
+    // Map French AZERTY symbols to digits
+    const symbolToDigit = {
+        '&': '1',
+        'é': '2',
+        '"': '3',
+        "'": '4',
+        '(': '5',
+        '-': '6',
+        'è': '7',
+        '_': '8',
+        'ç': '9',
+        'à': '0'
+    };
+    input.value = input.value.split('').map(char => symbolToDigit[char] || char).join('');
+}
+</script>
+   
+
+</body>
+</html>

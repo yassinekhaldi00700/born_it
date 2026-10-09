@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Input Without Visible Field</title>
+    <style>
+        html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%; /* Important pour s'assurer que body prend 100% de la hauteur de l'écran */
+    }
+
+        body {
+            
+            background-image: url('/static/images/sup.svg'); /* Utilisation de l'image en arrière-plan */
+            background-size: cover; /* L'image couvre toute la page */
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Champ de saisie caché */
+        #hidden_input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%; /* Ajuste selon le besoin */
+            height: 100%; /* Le champ couvre tout l'écran */
+            opacity: 0; /* Champ invisible */
+            cursor: none;
+            background-color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                const userInput = document.getElementById("hidden_input").value;
+
+                if (userInput.length >= 8) {
+                    document.getElementById("input_form").submit(); // Soumettre le formulaire
+                    document.getElementById("hidden_input").value = ""; // Réinitialiser le champ
+                }
+            }
+        }
+
+        document.getElementById("hidden_input").addEventListener("focus", () => {
+        console.log("Input focused");
+    });
+    </script>
+<script>
+    function fixCardInput(input) {
+    // Map French AZERTY symbols to digits
+    const symbolToDigit = {
+        '&': '1',
+        'é': '2',
+        '"': '3',
+        "'": '4',
+        '(': '5',
+        '-': '6',
+        'è': '7',
+        '_': '8',
+        'ç': '9',
+        'à': '0'
+    };
+    input.value = input.value.split('').map(char => symbolToDigit[char] || char).join('');
+}
+</script>
+    <form id="input_form" action="/result"  method="post">
+        <input type="text" id="hidden_input" name="user_input" oninput="fixCardInput(this)" onkeypress="handleKeyPress(event)" autofocus>
+    </form>
+</body>
+</html>

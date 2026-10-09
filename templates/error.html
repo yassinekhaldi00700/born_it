@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% import "_ui.html" as ui %}
+
+{% block title %}Erreur - Borne de services UEMF{% endblock %}
+{# Leave a Python error on screen longer so it can be read #}
+{% block auto_return %}{{ 30000 if error_detail else 5000 }}{% endblock %}
+
+{% block content %}
+<header class="topbar">
+    {{ ui.brand("Une erreur est survenue") }}
+</header>
+
+<main class="k-main">
+    <div class="panel">
+        <div class="panel-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+
+        <h2>{% block error_title %}Impossible de continuer{% endblock %}</h2>
+        <p class="lead">{% block error_lead %}Votre demande n'a pas pu aboutir. Réessayez en passant à nouveau votre carte.{% endblock %}</p>
+
+        {% if error_code %}
+        <p class="error-msg">{{ error_code }}</p>
+        {% endif %}
+
+        {% if error_detail %}
+        <pre class="trace">{{ error_detail }}</pre>
+        {% endif %}
+
+        {{ ui.dsi_place() }}
+
+        <div class="actions">
+            <button class="btn btn-primary" type="button" onclick="goToIndexPage()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+                Retour à l'accueil
+            </button>
+        </div>
+        <p class="note">Retour automatique dans <strong data-countdown></strong> s</p>
+    </div>
+</main>
+
+{{ ui.swipe_footer("Passez votre carte à tout moment pour réessayer") }}
+{% endblock %}

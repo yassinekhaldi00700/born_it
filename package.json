@@ -1,0 +1,23 @@
+{
+  "name": "project-web",
+  "version": "1.0.0",
+  "description": "dsi project ",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm install tailwindcss"
+  },
+  "repository": {
+    "type": "git",
+    "url": "npm install tailwindcss"
+  },
+  "keywords": [
+    "npm",
+    "install",
+    "tailwindcss"
+  ],
+  "author": "npm install tailwindcss",
+  "license": "ISC",
+  "dependencies": {
+    "tailwindcss": "^3.3.3"
+  }
+}

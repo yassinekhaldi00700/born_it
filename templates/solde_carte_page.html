@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* The Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+
+        /* Modal Content */
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            text-align: center;
+        }
+
+        /* Close Button */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <button id="showModalBtn1">Show Modal 1</button>
+    <button >Show Modal 2</button>
+    
+    <!-- Modal 1 -->
+    <div id="myModal1" class="modal">
+        <!-- Modal 1 content -->
+        <div class="modal-content">
+            <span class="close" id="closeModal1">&times;</span>
+            <p>This is Modal 1 with a message.</p>
+        </div>
+    </div>
+
+    <!-- Modal 2 -->
+    <div id="myModal2" class="modal">
+        <!-- Modal 2 content -->
+        <div class="modal-content">
+            <span class="close" id="closeModal2">&times;</span>
+            <p>This is Modal 2 with a different message.</p>
+        </div>
+    </div>
+
+    <script>
+        // Get the modals
+        var modal1 = document.getElementById("myModal1");
+        var modal2 = document.getElementById("myModal2");
+
+        // Get the buttons that open the modals
+        var showModalBtn1 = document.getElementById("showModalBtn1");
+        var showModalBtn2 = document.getElementById("showModalBtn2");
+
+        // Get the close buttons
+        var closeModal1 = document.getElementById("closeModal1");
+        var closeModal2 = document.getElementById("closeModal2");
+
+        // Function to display Modal 1
+        function openModal1() {
+            modal1.style.display = "block";
+        }
+
+        // Function to close Modal 1
+        function closeModalFunc1() {
+            modal1.style.display = "none";
+        }
+
+        // Function to display Modal 2
+        function openModal2() {
+            modal2.style.display = "block";
+        }
+
+        // Function to close Modal 2
+        function closeModalFunc2() {
+            modal2.style.display = "none";
+        }
+
+        // Event listeners for opening modals
+        showModalBtn1.addEventListener("click", openModal1);
+        showModalBtn2.addEventListener("click", openModal2);
+
+        // Event listeners for closing modals
+        closeModal1.addEventListener("click", closeModalFunc1);
+        closeModal2.addEventListener("click", closeModalFunc2);
+    </script>
+</body>
+</html>

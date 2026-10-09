@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services - UEMF</title>
+    {% set is_teacher = user_type == 'teacher' %}
+    {% set initials = ((student_name or '')|string).split()[:2]|map('first')|join|upper %}
+    <style>
+        :root {
+            --navy: #1b1b87;
+            --teal: #2a7b9b;
+            --green: #57c785;
+            --ink: #111827;
+            --text: #374151;
+            --muted: #6b7280;
+            --line: #e5e7eb;
+            --soft: #f3f4f6;
+
+            --c-resto: #16a34a;
+            --c-hist: #d97706;
+            --c-help: #0891b2;
+            --c-outlook: #0078d4;
+            --c-print: #7c3aed;
+            --c-konosys: #0f766e;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text);
+            background: linear-gradient(135deg, var(--navy) 0%, var(--teal) 55%, var(--green) 100%);
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            padding: 22px 44px 18px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Hidden card-reader input */
+        #hidden_input {
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+        }
+
+        /* ---------- Top bar ---------- */
+        .topbar {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .user {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: #fff;
+            min-width: 0;
+        }
+
+        .avatar {
+            flex: none;
+            display: grid;
+            place-items: center;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .18);
+            border: 2px solid rgba(255, 255, 255, .55);
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .user-text { min-width: 0; }
+
+        .hello {
+            margin: 0;
+            font-size: 1rem;
+            opacity: .85;
+        }
+
+        .name {
+            margin: 0;
+            font-size: 1.7rem;
+            font-weight: 700;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .badge {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 3px 12px;
+            border-radius: 999px;
+            background: #fff;
+            color: var(--navy);
+            font-size: .78rem;
+            font-weight: 700;
+            letter-spacing: .6px;
+            text-transform: uppercase;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 28px;
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
+        }
+
+        .brand-mark {
+            display: grid;
+            place-items: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--navy), var(--teal));
+            color: #fff;
+            font-weight: 800;
+            font-size: .95rem;
+            letter-spacing: .5px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            color: var(--ink);
+            font-size: 1.35rem;
+            line-height: 1.2;
+        }
+
+        .brand p {
+            margin: 2px 0 0;
+            color: var(--muted);
+            font-size: .92rem;
+        }
+
+        .session {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .timer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .14);
+            color: #fff;
+            font-size: .95rem;
+            white-space: nowrap;
+        }
+
+        .timer svg { width: 18px; height: 18px; }
+        .timer strong { font-variant-numeric: tabular-nums; }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 22px;
+            border: none;
+            border-radius: 12px;
+            background: #fff;
+            color: #b91c1c;
+            font-family: inherit;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, .15);
+        }
+
+        .logout-btn:active { transform: scale(.97); }
+        .logout-btn svg { width: 22px; height: 22px; }
+
+        /* ---------- Services ---------- */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 26px;
+            width: 100%;
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 18px 0;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0 0 12px 4px;
+            color: #fff;
+            font-size: .9rem;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        .section-title::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, .35);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        .card {
+            --accent: var(--teal);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+            min-height: 200px;
+            padding: 24px 24px 20px;
+            border: none;
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 14px 30px rgba(0, 0, 0, .16);
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            color: inherit;
+            overflow: hidden;
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 5px;
+            background: var(--accent);
+        }
+
+        .card:hover,
+        .card:focus-visible {
+            transform: translateY(-4px);
+            box-shadow: 0 22px 40px rgba(0, 0, 0, .24);
+            outline: none;
+        }
+
+        .card:active { transform: scale(.98); }
+
+        .card .icon {
+            display: grid;
+            place-items: center;
+            width: 62px;
+            height: 62px;
+            margin-bottom: 8px;
+            border-radius: 16px;
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .card .icon svg { width: 32px; height: 32px; }
+
+        .card .label {
+            margin: 0;
+            color: var(--ink);
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .card .desc {
+            margin: 0;
+            color: var(--muted);
+            font-size: .95rem;
+            line-height: 1.4;
+        }
+
+        .card .action {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: auto;
+            padding-top: 12px;
+            color: var(--accent);
+            font-size: .95rem;
+            font-weight: 700;
+        }
+
+        .card .action svg { width: 18px; height: 18px; }
+
+        .c-resto   { --accent: var(--c-resto); }
+        .c-hist    { --accent: var(--c-hist); }
+        .c-help    { --accent: var(--c-help); }
+        .c-outlook { --accent: var(--c-outlook); }
+        .c-print   { --accent: var(--c-print); }
+        .c-konosys { --accent: var(--c-konosys); }
+
+        .footer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            color: rgba(255, 255, 255, .9);
+            font-size: .95rem;
+            text-align: center;
+        }
+
+        .footer svg { flex: none; width: 20px; height: 20px; }
+
+        /* ---------- Modals ---------- */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, .6);
+        }
+
+        .modal.open {
+            display: flex;
+            animation: fade .15s ease;
+        }
+
+        .modal-box {
+            position: relative;
+            width: min(620px, 100%);
+            max-height: 88vh;
+            overflow: auto;
+            padding: 30px 34px 26px;
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, .35);
+            text-align: center;
+            animation: pop .18s ease;
+        }
+
+        .modal-box.wide { width: min(1100px, 100%); }
+
+        .modal-head {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .modal-head .icon {
+            display: grid;
+            place-items: center;
+            width: 58px;
+            height: 58px;
+            border-radius: 16px;
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .modal-head .icon svg { width: 30px; height: 30px; }
+
+        .modal-head h2 {
+            margin: 0;
+            color: var(--ink);
+            font-size: 1.55rem;
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 50%;
+            background: none;
+            color: #9ca3af;
+            font-size: 2rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .close:hover { background: var(--soft); color: var(--ink); }
+
+        .big-value {
+            margin: 6px 0 4px;
+            color: var(--c-resto);
+            font-size: 3.4rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .sub {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        .info {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            margin: 8px 0;
+            padding: 14px 18px;
+            border-radius: 12px;
+            background: var(--soft);
+            font-size: 1.05rem;
+            text-align: left;
+        }
+
+        .info span { color: var(--muted); }
+        .info strong { color: var(--ink); word-break: break-all; text-align: right; }
+
+        .warn {
+            margin: 14px 0 0;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: #fffbeb;
+            color: #92400e;
+            font-size: .98rem;
+            text-align: left;
+        }
+
+        .result {
+            margin-top: 6px;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            white-space: pre-line;
+            word-break: break-word;
+            user-select: text;
+        }
+
+        .result.ok    { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+        .result.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+        .note {
+            margin: 14px 0 0;
+            color: var(--muted);
+            font-size: .98rem;
+        }
+
+        .loading {
+            width: 54px;
+            height: 54px;
+            margin: 14px auto 4px;
+            border: 6px solid var(--line);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .btn {
+            min-width: 150px;
+            padding: 13px 28px;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1.08rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn:active { transform: scale(.97); }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-light   { background: var(--soft); color: var(--text); }
+
+        /* Help */
+        .help-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            text-align: left;
+        }
+
+        .help-list li {
+            display: flex;
+            gap: 14px;
+            padding: 12px 4px;
+            border-bottom: 1px solid var(--line);
+            font-size: 1.02rem;
+            line-height: 1.4;
+        }
+
+        .help-list li:last-child { border-bottom: none; }
+        .help-list b { color: var(--ink); }
+
+        .help-list .dot {
+            flex: none;
+            width: 10px;
+            height: 10px;
+            margin-top: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        .place {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+            padding: 16px 18px;
+            border-radius: 14px;
+            background: #ecfeff;
+            color: #155e75;
+            text-align: left;
+        }
+
+        .place svg { flex: none; width: 30px; height: 30px; }
+        .place b { display: block; font-size: 1.15rem; color: #164e63; }
+
+        /* History table (HTML comes from get_history) */
+        .history table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 0 1px var(--line);
+            text-align: left;
+        }
+
+        .history th {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, var(--teal), var(--green));
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .history td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .history tr:nth-child(even) td { background: #f9fafb; }
+        .history tr:last-child td { border-bottom: none; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fade { from { opacity: 0; } }
+        @keyframes pop  { from { opacity: 0; transform: scale(.96); } }
+
+        /* Big kiosk screens (Full HD): larger, easier-to-tap cards */
+        @media (min-width: 1600px) and (min-height: 900px) {
+            .content { max-width: 1440px; gap: 34px; }
+            .grid { gap: 28px; }
+            .card { min-height: 260px; padding: 30px 30px 24px; }
+            .card .icon { width: 76px; height: 76px; border-radius: 20px; }
+            .card .icon svg { width: 40px; height: 40px; }
+            .card .label { font-size: 1.55rem; }
+            .card .desc { font-size: 1.08rem; }
+            .card .action { font-size: 1.05rem; }
+            .section-title { font-size: 1rem; }
+        }
+
+        @media (max-width: 1100px) {
+            .topbar { grid-template-columns: 1fr auto; }
+            .brand { display: none; }
+        }
+
+        @media (max-width: 900px) {
+            html, body { overflow: auto; }
+            body { padding: 16px; }
+            .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            /* 3 cards per section: the last one takes the full row instead of sitting alone */
+            .grid > .card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+            .timer { display: none; }
+            .card { min-height: 180px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Card reader: a new card swipe from this page goes straight to /result -->
+    <form id="input_form" action="/result" method="post">
+        <input type="text" id="hidden_input" name="user_input" oninput="fixCardInput(this)" onkeypress="handleKeyPress(event)" autofocus>
+    </form>
+
+    <!-- ===================== Top bar ===================== -->
+    <header class="topbar">
+        <div class="user">
+            <div class="avatar">{{ initials or '?' }}</div>
+            <div class="user-text">
+                <p class="hello">Bonjour,</p>
+                <p class="name">{{ student_name }}</p>
+                <span class="badge">{{ 'Enseignant' if is_teacher else 'Étudiant' }}</span>
+            </div>
+        </div>
+
+        <div class="brand">
+            <div class="brand-mark">UEMF</div>
+            <div>
+                <h1>Borne de services UEMF</h1>
+                <p>Choisissez un service</p>
+            </div>
+        </div>
+
+        <div class="session">
+            <div class="timer" title="Déconnexion automatique">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>Déconnexion dans <strong id="logout_timer">100</strong> s</span>
+            </div>
+            <button class="logout-btn" onclick="goToIndexPage()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Déconnexion
+            </button>
+        </div>
+    </header>
+
+    <!-- ===================== Services ===================== -->
+    <main class="content">
+        <section>
+            <h2 class="section-title">Carte &amp; restaurant</h2>
+            <div class="grid">
+                <button id="btn_solde" class="card c-resto">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg>
+                    </span>
+                    <p class="label">Solde Restaurant</p>
+                    <p class="desc">Consulter le solde de votre carte</p>
+                    <span class="action">Consulter <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </button>
+
+                <button id="btn_hist" class="card c-hist">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    </span>
+                    <p class="label">Historique des achats</p>
+                    <p class="desc">Voir vos derniers achats au restaurant</p>
+                    <span class="action">Afficher <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </button>
+
+                <button id="btn_help" class="card c-help">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </span>
+                    <p class="label">Aide &amp; contact DSI</p>
+                    <p class="desc">Un problème ? Trouvez de l'aide et où nous trouver</p>
+                    <span class="action">Obtenir de l'aide <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </button>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-title">Mots de passe</h2>
+            <div class="grid">
+                <button id="btn_outlook" class="card c-outlook">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22 6 12 13 2 6"/></svg>
+                    </span>
+                    <p class="label">Mot de passe Outlook</p>
+                    <p class="desc">Réinitialiser votre messagerie Microsoft 365</p>
+                    <span class="action">Réinitialiser <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </button>
+
+                <button id="btn_print" class="card c-print">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    </span>
+                    <p class="label">Mot de passe Imprimante</p>
+                    <p class="desc">Réinitialiser votre compte d'impression (AD)</p>
+                    <span class="action">Réinitialiser <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </button>
+
+                <button id="btn_konosys" class="card c-konosys">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>
+                    </span>
+                    <p class="label">Mot de passe Konosys</p>
+                    <p class="desc">Réinitialiser votre accès à l'espace Konosys</p>
+                    <span class="action">Réinitialiser <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <p class="footer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Passez votre carte à tout moment pour changer d'utilisateur · Déconnexion automatique après inactivité
+    </p>
+
+    <!-- ===================== Modals ===================== -->
+
+    <!-- Restaurant balance -->
+    <div id="modal_solde" class="modal">
+        <div class="modal-box c-resto">
+            <button class="close" data-close aria-label="Fermer">&times;</button>
+            <div class="modal-head">
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg></span>
+                <h2>Solde Restaurant</h2>
+            </div>
+            <p class="sub">Solde disponible sur votre carte</p>
+            <p class="big-value">{{ solde_carte }} DH</p>
+            <div class="actions"><button class="btn btn-primary" data-close>OK</button></div>
+        </div>
+    </div>
+
+    <!-- Purchase history -->
+    <div id="modal_hist" class="modal">
+        <div class="modal-box wide c-hist">
+            <button class="close" data-close aria-label="Fermer">&times;</button>
+            <div class="modal-head">
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+                <h2>Historique des achats</h2>
+            </div>
+            <div class="history">{{ hist|safe }}</div>
+            <div class="actions"><button class="btn btn-primary" data-close>OK</button></div>
+        </div>
+    </div>
+
+    <!-- Help -->
+    <div id="modal_help" class="modal">
+        <div class="modal-box c-help">
+            <button class="close" data-close aria-label="Fermer">&times;</button>
+            <div class="modal-head">
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+                <h2>Aide &amp; contact DSI</h2>
+            </div>
+            <div class="place">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <div>
+                    <b>Direction des Systèmes d'Information (DSI)</b>
+                    2ème étage, Bâtiment administratif
+                </div>
+            </div>
+            <ul class="help-list">
+                <li><span class="dot"></span><span><b>Nouveau mot de passe :</b> notez-le avant de fermer la fenêtre, il ne sera plus affiché.</span></li>
+                <li><span class="dot"></span><span><b>Réinitialisation échouée :</b> réessayez une fois, puis présentez-vous à la DSI avec votre carte.</span></li>
+                <li><span class="dot"></span><span><b>Solde incorrect :</b> les derniers achats peuvent prendre quelques minutes à apparaître.</span></li>
+                <li><span class="dot"></span><span><b>Carte non reconnue :</b> passez-la à nouveau ou rendez-vous à la DSI.</span></li>
+            </ul>
+            <div class="actions"><button class="btn btn-primary" data-close>OK</button></div>
+        </div>
+    </div>
+
+    <!-- Outlook -->
+    <div id="modal_outlook" class="modal">
+        <div class="modal-box c-outlook">
+            <button class="close" data-close aria-label="Fermer">&times;</button>
+            <div class="modal-head">
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22 6 12 13 2 6"/></svg></span>
+                <h2>Mot de passe Outlook</h2>
+            </div>
+            <div class="info"><span>Adresse e-mail</span><strong>{{ e_mail }}</strong></div>
+            <div id="outlook_body"></div>
+        </div>
+    </div>
+
+    <!-- AD / printer -->
+    <div id="modal_print" class="modal">
+        <div class="modal-box c-print">
+            <button class="close" data-close aria-label="Fermer">&times;</button>
+            <div class="modal-head">
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span>
+                <h2>Mot de passe Imprimante</h2>
+            </div>
+            <div id="print_body"></div>
+        </div>
+    </div>
+
+    <!-- Konosys -->
+    <div id="modal_konosys" class="modal">
+        <div class="modal-box c-konosys">
+            <button class="close" data-close aria-label="Fermer">&times;</button>
+            <div class="modal-head">
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></span>
+                <h2>Mot de passe Konosys</h2>
+            </div>
+            <div id="konosys_body"></div>
+        </div>
+    </div>
+
+    <script>
+        var userType = {{ (user_type or 'student')|tojson }};
+
+        // ---------- Modal helpers ----------
+        function openModal(id) {
+            document.getElementById(id).classList.add("open");
+        }
+
+        function closeAllModals() {
+            document.querySelectorAll(".modal.open").forEach(function (m) { m.classList.remove("open"); });
+            setTimeout(function () { document.getElementById("hidden_input").focus(); }, 100);
+        }
+
+        // [data-close] buttons are also created later inside reset modals, so delegate
+        document.addEventListener("click", function (e) {
+            if (e.target.closest("[data-close]")) closeAllModals();
+        });
+
+        // Click on the dark backdrop closes the modal
+        document.querySelectorAll(".modal").forEach(function (modal) {
+            modal.addEventListener("click", function (e) {
+                if (e.target === modal) closeAllModals();
+            });
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") closeAllModals();
+        });
+
+        // ---------- Password resets: confirm -> spinner -> result ----------
+        function el(tag, className, text) {
+            var node = document.createElement(tag);
+            if (className) node.className = className;
+            if (text) node.textContent = text;
+            return node;
+        }
+
+        function okButton() {
+            var actions = el("div", "actions");
+            var ok = el("button", "btn btn-primary", "OK");
+            ok.setAttribute("data-close", "");
+            actions.appendChild(ok);
+            return actions;
+        }
+
+        function showConfirm(reset) {
+            var body = document.getElementById(reset.bodyId);
+            body.innerHTML = "";
+            body.appendChild(el("p", "warn", "⚠ " + reset.warning));
+
+            var actions = el("div", "actions");
+            var cancel = el("button", "btn btn-light", "Annuler");
+            cancel.setAttribute("data-close", "");
+            var go = el("button", "btn btn-primary", "Réinitialiser");
+            go.addEventListener("click", function () { startReset(reset); });
+            actions.appendChild(cancel);
+            actions.appendChild(go);
+            body.appendChild(actions);
+        }
+
+        function showLoading(reset) {
+            var body = document.getElementById(reset.bodyId);
+            body.innerHTML = "";
+            body.appendChild(el("div", "loading"));
+            body.appendChild(el("p", "note", "Réinitialisation en cours, veuillez patienter…"));
+        }
+
+        function showResult(reset, message) {
+            var text = String(message || "Aucune réponse du serveur.");
+            // "⚠" without the emoji variation selector also matches "⚠️"
+            var isError = /❌|⚠|error|erreur|failed|échec/i.test(text);
+            var body = document.getElementById(reset.bodyId);
+            body.innerHTML = "";
+
+            body.appendChild(el("div", "result " + (isError ? "error" : "ok"), text));
+            body.appendChild(el("p", "note", isError
+                ? "Si le problème persiste, rendez-vous à la DSI (2ème étage, Bâtiment administratif)."
+                : "Veuillez noter ces informations avant de fermer."));
+            body.appendChild(okButton());
+        }
+
+        // A double tap must not start a second reset: it would create a new password
+        // and the one on screen would no longer be valid.
+        var resetRunning = {};
+
+        function startReset(reset) {
+            if (resetRunning[reset.endpoint]) return;
+            resetRunning[reset.endpoint] = true;
+            showLoading(reset);
+            fetch(reset.endpoint)
+                .then(function (r) { return r.json(); })
+                .then(function (data) { showResult(reset, data.variable); })
+                .catch(function () { showResult(reset, "❌ Erreur lors de la réinitialisation. Veuillez réessayer."); })
+                .finally(function () { resetRunning[reset.endpoint] = false; });
+        }
+
+        function openReset(reset) {
+            // While a reset is running, just show its progress again
+            if (!resetRunning[reset.endpoint]) showConfirm(reset);
+            openModal(reset.modalId);
+        }
+
+        var resets = {
+            outlook: {
+                modalId: "modal_outlook", bodyId: "outlook_body", endpoint: "/resetoutlook",
+                warning: "Votre mot de passe Outlook actuel ne fonctionnera plus. Un nouveau mot de passe va s'afficher."
+            },
+            print: {
+                // The AD account is the printer account. Teachers: part of the e-mail before "@".
+                modalId: "modal_print", bodyId: "print_body",
+                endpoint: userType === "teacher" ? "/resetAD1" : "/resetAD",
+                warning: "Votre mot de passe d'impression actuel ne fonctionnera plus. Un nouveau mot de passe va s'afficher."
+            },
+            konosys: {
+                modalId: "modal_konosys", bodyId: "konosys_body", endpoint: "/resetkonosys",
+                warning: "Votre mot de passe Konosys actuel ne fonctionnera plus. Un nouveau mot de passe va s'afficher."
+            }
+        };
+
+        // ---------- Buttons ----------
+        document.getElementById("btn_solde").addEventListener("click", function () { openModal("modal_solde"); });
+        document.getElementById("btn_hist").addEventListener("click", function () { openModal("modal_hist"); });
+        document.getElementById("btn_help").addEventListener("click", function () { openModal("modal_help"); });
+        document.getElementById("btn_outlook").addEventListener("click", function () { openReset(resets.outlook); });
+        document.getElementById("btn_print").addEventListener("click", function () { openReset(resets.print); });
+        document.getElementById("btn_konosys").addEventListener("click", function () { openReset(resets.konosys); });
+
+        // ---------- Kiosk behaviour ----------
+        function goToIndexPage() {
+            window.location.href = "/";
+        }
+        setInterval(goToIndexPage, 100000);
+
+        // Visible countdown for the automatic logout above
+        var secondsLeft = 100;
+        setInterval(function () {
+            secondsLeft = Math.max(0, secondsLeft - 1);
+            document.getElementById("logout_timer").textContent = secondsLeft;
+        }, 1000);
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                var userInput = document.getElementById("hidden_input").value;
+                if (userInput.length >= 8) {
+                    document.getElementById("input_form").submit();
+                    document.getElementById("hidden_input").value = "";
+                } else {
+                    alert("Veuillez entrer au moins 8 caractères.");
+                }
+            }
+        }
+
+        // Keep the card reader input focused
+        setInterval(function () {
+            document.getElementById("hidden_input").focus();
+        }, 1000);
+
+        // Card reader on a French AZERTY layout sends symbols instead of digits
+        function fixCardInput(input) {
+            var symbolToDigit = {
+                '&': '1', 'é': '2', '"': '3', "'": '4', '(': '5',
+                '-': '6', 'è': '7', '_': '8', 'ç': '9', 'à': '0'
+            };
+            input.value = input.value.split('').map(function (c) { return symbolToDigit[c] || c; }).join('');
+        }
+    </script>
+</body>
+</html>

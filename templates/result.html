@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% import "_ui.html" as ui %}
+
+{% block title %}Votre profil - Borne de services UEMF{% endblock %}
+{# Nobody must be able to pick up someone else's card session: back home after 60 s #}
+{% block auto_return %}60000{% endblock %}
+
+{% block content %}
+<header class="topbar">
+    {{ ui.brand("Identification") }}
+    <span></span>
+    <div class="session">
+        {{ ui.timer("Retour à l'accueil dans") }}
+        {{ ui.logout_button("Annuler") }}
+    </div>
+</header>
+
+<main class="k-main">
+    <div class="page-head">
+        <h2>Qui êtes-vous ?</h2>
+        <p>Carte détectée. Sélectionnez votre profil pour accéder à vos services.</p>
+    </div>
+
+    <div class="profile-grid">
+        <form action="/STUDENTBUTTON" method="post" data-busy>
+            <button class="profile-card p-student" type="submit">
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/><line x1="22" y1="10" x2="22" y2="16"/></svg>
+                </span>
+                <p class="label">Étudiant</p>
+                <p class="desc">Accès avec votre carte étudiant</p>
+                <span class="action">Continuer <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </button>
+        </form>
+
+        <form action="/TEACHERBUTTON" method="post" data-busy>
+            <button class="profile-card p-staff" type="submit">
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                </span>
+                <p class="label">Enseignant &amp; personnel</p>
+                <p class="desc">Enseignants, personnel administratif et autres</p>
+                <span class="action">Continuer <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </button>
+        </form>
+    </div>
+</main>
+
+{{ ui.swipe_footer("Ce n'est pas votre carte ? Passez la vôtre ou appuyez sur Annuler") }}
+
+<div class="busy" id="busy" role="status">
+    <div class="loading"></div>
+    Chargement de vos informations…
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Looking the card up takes a few seconds: show progress and ignore a second tap
+    document.querySelectorAll("form[data-busy]").forEach(function (form) {
+        form.addEventListener("submit", function (e) {
+            if (form.dataset.sent) { e.preventDefault(); return; }
+            form.dataset.sent = "1";
+            document.getElementById("busy").classList.add("open");
+        });
+    });
+
+    // Coming back with the browser "back" button must not leave the overlay on
+    window.addEventListener("pageshow", function () {
+        document.getElementById("busy").classList.remove("open");
+        document.querySelectorAll("form[data-busy]").forEach(function (f) { delete f.dataset.sent; });
+    });
+</script>
+{% endblock %}

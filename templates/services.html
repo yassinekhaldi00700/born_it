@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+{% import "_ui.html" as ui %}
+
+{% block title %}Services - UEMF{% endblock %}
+{% block auto_return %}100000{% endblock %}
+{% block body_attrs %}data-short-card-alert{% endblock %}
+
+{% block content %}
+{% set is_teacher = user_type == 'teacher' %}
+{% set initials = ((student_name or '')|string).split()[:2]|map('first')|join|upper %}
+<header class="topbar">
+    <div class="user">
+        <div class="avatar">{{ initials or '?' }}</div>
+        <div class="user-text">
+            <p class="hello">Bonjour,</p>
+            <p class="name">{{ student_name }}</p>
+            <span class="badge">{{ 'Enseignant' if is_teacher else 'Étudiant' }}</span>
+        </div>
+    </div>
+
+    {{ ui.brand("Choisissez un service") }}
+
+    <div class="session">
+        {{ ui.timer("Déconnexion dans") }}
+        {{ ui.logout_button() }}
+    </div>
+</header>
+
+<!-- ===================== Services ===================== -->
+<main class="k-main content">
+    <section>
+        <h2 class="section-title">Carte &amp; restaurant</h2>
+        <div class="grid">
+            <button id="btn_solde" class="card c-resto">
+                <span class="icon"><img src="{{ url_for('static', filename='images/icons/resto.svg') }}" alt="Solde"></span>
+                <p class="label">Solde Restaurant</p>
+                <p class="desc">Consulter le solde de votre carte</p>
+                <span class="action">Consulter <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </button>
+
+            <button id="btn_hist" class="card c-hist">
+                <span class="icon"><img src="{{ url_for('static', filename='images/icons/history.svg') }}" alt="Historique"></span>
+                <p class="label">Historique des achats</p>
+                <p class="desc">Voir vos derniers achats au restaurant</p>
+                <span class="action">Afficher <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </button>
+
+            <button id="btn_help" class="card c-help">
+                <span class="icon"><img src="{{ url_for('static', filename='images/icons/help.svg') }}" alt="Aide"></span>
+                <p class="label">Aide &amp; contact DSI</p>
+                <p class="desc">Un problème ? Trouvez de l'aide et où nous trouver</p>
+                <span class="action">Obtenir de l'aide <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </button>
+        </div>
+    </section>
+
+    <section>
+        <h2 class="section-title">Mots de passe</h2>
+        <div class="grid">
+            <button id="btn_outlook" class="card c-outlook">
+                <span class="icon"><img src="{{ url_for('static', filename='images/icons/outlook.svg') }}" alt="Outlook"></span>
+                <p class="label">Mot de passe Outlook</p>
+                <p class="desc">Réinitialiser votre messagerie Microsoft 365</p>
+                <span class="action">Réinitialiser <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </button>
+
+            <button id="btn_print" class="card c-print">
+                <span class="icon icon-text">AD</span>
+                <p class="label">Mot de passe Imprimante</p>
+                <p class="desc">Réinitialiser votre compte d'impression (AD)</p>
+                <span class="action">Réinitialiser <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </button>
+
+            <button id="btn_konosys" class="card c-konosys">
+                <span class="icon"><img src="{{ url_for('static', filename='images/icons/konosys.svg') }}" alt="Konosys"></span>
+                <p class="label">Mot de passe Konosys</p>
+                <p class="desc">Réinitialiser votre accès à l'espace Konosys</p>
+                <span class="action">Réinitialiser <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </button>
+        </div>
+    </section>
+</main>
+
+{{ ui.swipe_footer() }}
+
+<!-- ===================== Modals ===================== -->
+
+<!-- Restaurant balance -->
+<div id="modal_solde" class="modal">
+    <div class="modal-box c-resto">
+        <button class="close" data-close aria-label="Fermer">&times;</button>
+        <div class="modal-head">
+            <span class="icon"><img src="{{ url_for('static', filename='images/icons/resto.svg') }}" alt="Solde"></span>
+            <h2>Solde Restaurant</h2>
+        </div>
+        <p class="sub">Solde disponible sur votre carte</p>
+        <p class="big-value">{{ solde_carte }} DH</p>
+        <div class="actions"><button class="btn btn-primary" data-close>OK</button></div>
+    </div>
+</div>
+
+<!-- Purchase history -->
+<div id="modal_hist" class="modal">
+    <div class="modal-box wide c-hist">
+        <button class="close" data-close aria-label="Fermer">&times;</button>
+        <div class="modal-head">
+            <span class="icon"><img src="{{ url_for('static', filename='images/icons/history.svg') }}" alt="Historique"></span>
+            <h2>Historique des achats</h2>
+        </div>
+        <div class="history">{{ hist|safe }}</div>
+        <div class="actions"><button class="btn btn-primary" data-close>OK</button></div>
+    </div>
+</div>
+
+<!-- Help -->
+<div id="modal_help" class="modal">
+    <div class="modal-box c-help">
+        <button class="close" data-close aria-label="Fermer">&times;</button>
+        <div class="modal-head">
+            <span class="icon"><img src="{{ url_for('static', filename='images/icons/help.svg') }}" alt="Aide"></span>
+            <h2>Aide &amp; contact DSI</h2>
+        </div>
+        {{ ui.dsi_place() }}
+        <ul class="help-list">
+            <li><span class="dot"></span><span><b>Nouveau mot de passe :</b> notez-le avant de fermer la fenêtre, il ne sera plus affiché.</span></li>
+            <li><span class="dot"></span><span><b>Réinitialisation échouée :</b> réessayez une fois, puis présentez-vous à la DSI avec votre carte.</span></li>
+            <li><span class="dot"></span><span><b>Solde incorrect :</b> les derniers achats peuvent prendre quelques minutes à apparaître.</span></li>
+            <li><span class="dot"></span><span><b>Carte non reconnue :</b> passez-la à nouveau ou rendez-vous à la DSI.</span></li>
+        </ul>
+        <div class="actions"><button class="btn btn-primary" data-close>OK</button></div>
+    </div>
+</div>
+
+<!-- Outlook -->
+<div id="modal_outlook" class="modal">
+    <div class="modal-box c-outlook">
+        <button class="close" data-close aria-label="Fermer">&times;</button>
+        <div class="modal-head">
+            <span class="icon"><img src="{{ url_for('static', filename='images/icons/outlook.svg') }}" alt="Outlook"></span>
+            <h2>Mot de passe Outlook</h2>
+        </div>
+        <div class="info"><span>Adresse e-mail</span><strong>{{ e_mail or "Non disponible" }}</strong></div>
+        <div id="outlook_body"></div>
+    </div>
+</div>
+
+<!-- AD / printer -->
+<div id="modal_print" class="modal">
+    <div class="modal-box c-print">
+        <button class="close" data-close aria-label="Fermer">&times;</button>
+        <div class="modal-head">
+            <span class="icon icon-text">AD</span>
+            <h2>Mot de passe Imprimante</h2>
+        </div>
+        <div id="print_body"></div>
+    </div>
+</div>
+
+<!-- Konosys -->
+<div id="modal_konosys" class="modal">
+    <div class="modal-box c-konosys">
+        <button class="close" data-close aria-label="Fermer">&times;</button>
+        <div class="modal-head">
+            <span class="icon"><img src="{{ url_for('static', filename='images/icons/konosys.svg') }}" alt="Konosys"></span>
+            <h2>Mot de passe Konosys</h2>
+        </div>
+        <div id="konosys_body"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var userType = {{ (user_type or 'student')|tojson }};
+
+    // ---------- Modal helpers ----------
+    function openModal(id) {
+        document.getElementById(id).classList.add("open");
+    }
+
+    function closeAllModals() {
+        document.querySelectorAll(".modal.open").forEach(function (m) { m.classList.remove("open"); });
+        setTimeout(function () { document.getElementById("hidden_input").focus(); }, 100);
+    }
+
+    // [data-close] buttons are also created later inside reset modals, so delegate
+    document.addEventListener("click", function (e) {
+        if (e.target.closest("[data-close]")) closeAllModals();
+    });
+
+    // Click on the dark backdrop closes the modal
+    document.querySelectorAll(".modal").forEach(function (modal) {
+        modal.addEventListener("click", function (e) {
+            if (e.target === modal) closeAllModals();
+        });
+    });
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") closeAllModals();
+    });
+
+    // ---------- Password resets: confirm -> spinner -> result ----------
+    function el(tag, className, text) {
+        var node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text) node.textContent = text;
+        return node;
+    }
+
+    function okButton() {
+        var actions = el("div", "actions");
+        var ok = el("button", "btn btn-primary", "OK");
+        ok.setAttribute("data-close", "");
+        actions.appendChild(ok);
+        return actions;
+    }
+
+    function showConfirm(reset) {
+        var body = document.getElementById(reset.bodyId);
+        body.innerHTML = "";
+        body.appendChild(el("p", "warn", "⚠ " + reset.warning));
+
+        var actions = el("div", "actions");
+        var cancel = el("button", "btn btn-light", "Annuler");
+        cancel.setAttribute("data-close", "");
+        var go = el("button", "btn btn-primary", "Réinitialiser");
+        go.addEventListener("click", function () { startReset(reset); });
+        actions.appendChild(cancel);
+        actions.appendChild(go);
+        body.appendChild(actions);
+    }
+
+    function showLoading(reset) {
+        var body = document.getElementById(reset.bodyId);
+        body.innerHTML = "";
+        body.appendChild(el("div", "loading"));
+        body.appendChild(el("p", "note", "Réinitialisation en cours, veuillez patienter…"));
+    }
+
+    function showResult(reset, message) {
+        var text = String(message || "Aucune réponse du serveur.");
+        // "⚠" without the emoji variation selector also matches "⚠️"
+        var isError = /❌|⚠|error|erreur|failed|échec/i.test(text);
+        var body = document.getElementById(reset.bodyId);
+        body.innerHTML = "";
+
+        body.appendChild(el("div", "result " + (isError ? "error" : "ok"), text));
+        body.appendChild(el("p", "note", isError
+            ? "Si le problème persiste, rendez-vous à la DSI (2ème étage, Bâtiment administratif)."
+            : "Veuillez noter ces informations avant de fermer."));
+        body.appendChild(okButton());
+    }
+
+    // A double tap must not start a second reset: it would create a new password
+    // and the one on screen would no longer be valid.
+    var resetRunning = {};
+
+    function startReset(reset) {
+        if (resetRunning[reset.endpoint]) return;
+        resetRunning[reset.endpoint] = true;
+        showLoading(reset);
+        fetch(reset.endpoint)
+            .then(function (r) { return r.json(); })
+            .then(function (data) { showResult(reset, data.variable); })
+            .catch(function () { showResult(reset, "❌ Erreur lors de la réinitialisation. Veuillez réessayer."); })
+            .finally(function () { resetRunning[reset.endpoint] = false; });
+    }
+
+    function openReset(reset) {
+        // While a reset is running, just show its progress again
+        if (!resetRunning[reset.endpoint]) showConfirm(reset);
+        openModal(reset.modalId);
+    }
+
+    var resets = {
+        outlook: {
+            modalId: "modal_outlook", bodyId: "outlook_body", endpoint: "/resetoutlook",
+            warning: "Votre mot de passe Outlook actuel ne fonctionnera plus. Un nouveau mot de passe va s'afficher."
+        },
+        print: {
+            // The AD account is the printer account. Teachers: part of the e-mail before "@".
+            modalId: "modal_print", bodyId: "print_body",
+            endpoint: userType === "teacher" ? "/resetAD1" : "/resetAD",
+            warning: "Votre mot de passe d'impression actuel ne fonctionnera plus. Un nouveau mot de passe va s'afficher."
+        },
+        konosys: {
+            modalId: "modal_konosys", bodyId: "konosys_body", endpoint: "/resetkonosys",
+            warning: "Votre mot de passe Konosys actuel ne fonctionnera plus. Un nouveau mot de passe va s'afficher."
+        }
+    };
+
+    // ---------- Buttons ----------
+    document.getElementById("btn_solde").addEventListener("click", function () { openModal("modal_solde"); });
+    document.getElementById("btn_hist").addEventListener("click", function () { openModal("modal_hist"); });
+    document.getElementById("btn_help").addEventListener("click", function () { openModal("modal_help"); });
+    document.getElementById("btn_outlook").addEventListener("click", function () { openReset(resets.outlook); });
+    document.getElementById("btn_print").addEventListener("click", function () { openReset(resets.print); });
+    document.getElementById("btn_konosys").addEventListener("click", function () { openReset(resets.konosys); });
+</script>
+{% endblock %}
