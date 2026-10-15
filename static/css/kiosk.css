@@ -136,9 +136,22 @@ button { font-family: inherit; }
     text-overflow: ellipsis;
 }
 
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.badge.badge-outline {
+    background: rgba(255, 255, 255, .14);
+    border: 1px solid rgba(255, 255, 255, .6);
+    color: var(--white);
+    font-variant-numeric: tabular-nums;
+}
+
 .badge {
     display: inline-block;
-    margin-top: 6px;
     padding: 3px 12px;
     border-radius: 999px;
     background: var(--white);

@@ -174,7 +174,7 @@ def STUDENTBUTTON():
 
         print("Rendering services.html template")
         sys.stdout.flush()
-        return render_template('services.html', student_name=student_info["name"],solde_carte=student_info["solde_carte"],e_mail=student_info["e-mail"],hist=hist,student=student,user_type="student")
+        return render_template('services.html', student_name=student_info["name"],matricule=student_info["matricule"],solde_carte=student_info["solde_carte"],e_mail=student_info["e-mail"],hist=hist,student=student,user_type="student")
         
     except Exception as e:
         print(f"\n{'='*50}")
@@ -248,7 +248,7 @@ def TEACHERBUTTON():
         
         print("Rendering services.html template")
         sys.stdout.flush()
-        return render_template('services.html', student_name=student_info["name"],solde_carte=student_info["solde_carte"],e_mail=student_info["e-mail"],hist=hist,user_type="teacher")
+        return render_template('services.html', student_name=student_info["name"],matricule=student_info["matricule"],solde_carte=student_info["solde_carte"],e_mail=student_info["e-mail"],hist=hist,user_type="teacher")
         
     except Exception as e:
         print(f"\n{'='*50}")
@@ -302,7 +302,7 @@ def resetoutlook():
 @app.route('/resetkonosys')
 def resetkonosys():
     try:
-        msg_konosys = reset_passwd_konosys(int(student_info["matricule"]))
+        msg_konosys = reset_passwd_konosys(student_info["matricule"], student_info.get("e-mail"))
         return jsonify({'variable': msg_konosys})
     except Exception as e:
         print(f"Error in resetkonosys: {e}")

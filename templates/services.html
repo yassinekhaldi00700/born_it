@@ -14,7 +14,10 @@
         <div class="user-text">
             <p class="hello">Bonjour,</p>
             <p class="name">{{ student_name }}</p>
-            <span class="badge">{{ 'Enseignant' if is_teacher else 'Étudiant' }}</span>
+            <div class="badges">
+                <span class="badge">{{ 'Enseignant' if is_teacher else 'Étudiant' }}</span>
+                {% if matricule %}<span class="badge badge-outline">Matricule {{ matricule }}</span>{% endif %}
+            </div>
         </div>
     </div>
 
@@ -74,8 +77,8 @@
             <button id="btn_konosys" class="card c-konosys">
                 <span class="icon"><img src="{{ url_for('static', filename='images/icons/konosys.svg') }}" alt="Konosys"></span>
                 <p class="label">Mot de passe Konosys</p>
-                <p class="desc">Réinitialiser votre accès à l'espace Konosys</p>
-                <span class="action">Réinitialiser <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                <p class="desc">Recevoir vos identifiants Konosys par e-mail</p>
+                <span class="action">Recevoir par e-mail <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
             </button>
         </div>
     </section>
@@ -164,6 +167,8 @@
             <span class="icon"><img src="{{ url_for('static', filename='images/icons/konosys.svg') }}" alt="Konosys"></span>
             <h2>Mot de passe Konosys</h2>
         </div>
+        <p class="sub">Vos identifiants Konosys seront envoyés à votre adresse e-mail académique.</p>
+        <div class="info"><span>Adresse e-mail</span><strong>{{ e_mail or "Non disponible" }}</strong></div>
         <div id="konosys_body"></div>
     </div>
 </div>
@@ -222,7 +227,7 @@
         var actions = el("div", "actions");
         var cancel = el("button", "btn btn-light", "Annuler");
         cancel.setAttribute("data-close", "");
-        var go = el("button", "btn btn-primary", "Réinitialiser");
+        var go = el("button", "btn btn-primary", reset.confirmLabel || "Réinitialiser");
         go.addEventListener("click", function () { startReset(reset); });
         actions.appendChild(cancel);
         actions.appendChild(go);
@@ -233,7 +238,7 @@
         var body = document.getElementById(reset.bodyId);
         body.innerHTML = "";
         body.appendChild(el("div", "loading"));
-        body.appendChild(el("p", "note", "Réinitialisation en cours, veuillez patienter…"));
+        body.appendChild(el("p", "note", reset.loadingText || "Réinitialisation en cours, veuillez patienter…"));
     }
 
     function showResult(reset, message) {
@@ -246,7 +251,7 @@
         body.appendChild(el("div", "result " + (isError ? "error" : "ok"), text));
         body.appendChild(el("p", "note", isError
             ? "Si le problème persiste, rendez-vous à la DSI (2ème étage, Bâtiment administratif)."
-            : "Veuillez noter ces informations avant de fermer."));
+            : (reset.successNote || "Veuillez noter ces informations avant de fermer.")));
         body.appendChild(okButton());
     }
 
@@ -281,7 +286,11 @@
             endpoint: userType === "teacher" ? "/resetAD1" : "/resetAD"
         },
         konosys: {
-            modalId: "modal_konosys", bodyId: "konosys_body", endpoint: "/resetkonosys"
+            // The KONOSYS API e-mails the login details: nothing to note down on screen
+            modalId: "modal_konosys", bodyId: "konosys_body", endpoint: "/resetkonosys",
+            confirmLabel: "Envoyer par e-mail",
+            loadingText: "Envoi en cours, veuillez patienter…",
+            successNote: "Consultez votre boîte e-mail académique (pensez à vérifier les courriers indésirables)."
         }
     };
 
