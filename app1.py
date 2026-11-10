@@ -134,29 +134,39 @@ def STUDENTBUTTON():
         
         student_info["solde_carte"]=student_solde
 
-        # Try to get Konosys info, but don't fail if it doesn't work
-        try:
-            print("Fetching Konosys data...")
-            sys.stdout.flush()
-            konosys_info=get_data_konosys(int(student_info["matricule"]))
-            try:
-                USERNAME =  [elem for elem in konosys_info["e-mail"]]
-                student_info["e-mail"]=USERNAME[0]
-            except (TypeError, IndexError):
-                # Keep the original email if Konosys fails
-                student_info["e-mail"] = student_email
+        # --- DISABLED: Konosys SQL lookup (replaced by the KONOSYS API below). Kept for reference. ---
+        # try:
+        #     print("Fetching Konosys data...")
+        #     sys.stdout.flush()
+        #     konosys_info=get_data_konosys(int(student_info["matricule"]))
+        #     try:
+        #         USERNAME =  [elem for elem in konosys_info["e-mail"]]
+        #         student_info["e-mail"]=USERNAME[0]
+        #     except (TypeError, IndexError):
+        #         # Keep the original email if Konosys fails
+        #         student_info["e-mail"] = student_email
+        #
+        #     try:
+        #         Email =  [elem for elem in konosys_info["user_name"]]
+        #         student_info["user_name"]=Email[0]
+        #     except (TypeError, IndexError):
+        #         student_info["user_name"] = ""
+        # except Exception as e:
+        #     # If Konosys completely fails, use default values
+        #     print(f"Konosys error (non-critical): {e}")
+        #     sys.stdout.flush()
+        #     student_info["e-mail"] = student_email
+        #     student_info["user_name"] = ""
 
-            try:
-                Email =  [elem for elem in konosys_info["user_name"]]
-                student_info["user_name"]=Email[0]
-            except (TypeError, IndexError):
-                student_info["user_name"] = ""
-        except Exception as e:
-            # If Konosys completely fails, use default values
-            print(f"Konosys error (non-critical): {e}")
-            sys.stdout.flush()
-            student_info["e-mail"] = student_email
-            student_info["user_name"] = ""
+        # Professional e-mail from the KONOSYS API (falls back to the BioStar e-mail)
+        mail_pro = get_mail_professionnel(student_info["matricule"])
+        if mail_pro:
+            print(f"KONOSYS API professional e-mail: {mail_pro}")
+        student_info["e-mail"] = mail_pro or student_email
+        # AD username = part before @ (same rule as the teacher route /resetAD1)
+        email = student_info["e-mail"] or ""
+        student_info["user_name"] = email.split("@")[0] if "@" in email else ""
+        sys.stdout.flush()
 
         # Try to get history, but don't fail if it doesn't work
         try:
