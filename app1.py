@@ -49,24 +49,37 @@ def error_page(message, technical=None, exc=None, status=200):
     return render_template("error.html", error_code=message), status
 ###########################################################################
 
-student_info = {"name":"","matricule":"","solde_carte":"","e-mail":"","solde_imp":"","user_name":""}
 requestSQL=""
 ###########################################################################
+# The card read and the logged-in person are kept in the Flask session (a signed cookie),
+# so each kiosk/browser has its own. They used to be module globals shared by every kiosk:
+# the buttons then acted on whoever had badged in last, not on the person at the screen.
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or os.urandom(32)
+
+MSG_SESSION_EXPIRED = "❌ Session expirée. Veuillez passer à nouveau votre carte."
+
+
+def current_user():
+    """The person logged in on this kiosk ({name, matricule, e-mail, user_name, type}), or None."""
+    user = session.get("user")
+    return user if user and user.get("matricule") else None
+
+
 @app.route('/')
 def index():
-    return render_template('index.html')    
+    session.clear()  # back to the home screen = log the previous person out
+    return render_template('index.html')
 ###########################################################################
 
 
 ###########################################################################
-user_input=""
 @app.route('/result', methods=['POST'])
 def result():
     try:
-        global user_input
         if request.method == 'POST':
             user_input = request.form.get('user_input', '')
+            session.clear()  # new card = new person
+            session["card"] = user_input
             print(f"Card ID received: {user_input}")
             sys.stdout.flush()  # Force output to show immediately
             return render_template('result.html')
@@ -84,13 +97,18 @@ def result():
 @app.route('/STUDENTBUTTON', methods=['POST'])
 def STUDENTBUTTON():
     try:
+        user_input = session.get("card", "")
+        session.pop("user", None)
         print(f"\n{'='*50}")
         print(f"STUDENTBUTTON route called")
         print(f"User input: {user_input}")
         print(f"{'='*50}\n")
         sys.stdout.flush()
-        
-        global student_info
+
+        if not user_input:
+            return error_page("Session expirée. Veuillez passer à nouveau votre carte.", "Aucune carte dans la session")
+
+        student_info = {}
         student=get_data(user_input,"S")
         
         print(f"Student data retrieved: {student}")
@@ -168,6 +186,10 @@ def STUDENTBUTTON():
         student_info["user_name"] = email.split("@")[0] if "@" in email else ""
         sys.stdout.flush()
 
+        # The buttons on this page act on this person only
+        session["user"] = {"type": "student", "name": student_info["name"], "matricule": str(student_info["matricule"]),
+                           "e-mail": student_info["e-mail"], "user_name": student_info["user_name"]}
+
         # Try to get history, but don't fail if it doesn't work
         try:
             print("Fetching purchase history...")
@@ -198,13 +220,18 @@ def STUDENTBUTTON():
 @app.route('/TEACHERBUTTON', methods=['POST'])
 def TEACHERBUTTON():
     try:
+        user_input = session.get("card", "")
+        session.pop("user", None)
         print(f"\n{'='*50}")
         print(f"TEACHERBUTTON route called")
         print(f"User input: {user_input}")
         print(f"{'='*50}\n")
         sys.stdout.flush()
-        
-        global student_info
+
+        if not user_input:
+            return error_page("Session expirée. Veuillez passer à nouveau votre carte.", "Aucune carte dans la session")
+
+        student_info = {}
         student=get_data(user_input,"T")
         
         print(f"Teacher data retrieved: {student}")
@@ -241,7 +268,12 @@ def TEACHERBUTTON():
             student_solde = "0.00"
         
         student_info["solde_carte"]=student_solde
-        
+
+        # The buttons on this page act on this person only
+        email = student_info["e-mail"] or ""
+        session["user"] = {"type": "teacher", "name": student_info["name"], "matricule": str(student_info["matricule"]),
+                           "e-mail": email, "user_name": email.split("@")[0] if "@" in email else email}
+
         # Try to get history
         try:
             print("Fetching purchase history...")
@@ -300,8 +332,11 @@ def SOLDEIMP():
 
 @app.route('/resetoutlook')
 def resetoutlook():
+    user = current_user()
+    if not user:
+        return jsonify({'variable': MSG_SESSION_EXPIRED})
     try:
-        result = reset_passwd_outlook(student_info["e-mail"])
+        result = reset_passwd_outlook(user["e-mail"])
         if result is None:
             return jsonify({'variable': '❌ Password reset failed. Please check backend logs for details.'})
         return jsonify({'variable': result})
@@ -311,8 +346,11 @@ def resetoutlook():
 
 @app.route('/resetkonosys')
 def resetkonosys():
+    user = current_user()
+    if not user:
+        return jsonify({'variable': MSG_SESSION_EXPIRED})
     try:
-        msg_konosys = reset_passwd_konosys(student_info["matricule"], student_info.get("e-mail"))
+        msg_konosys = reset_passwd_konosys(user["matricule"], user.get("e-mail"))
         return jsonify({'variable': msg_konosys})
     except Exception as e:
         print(f"Error in resetkonosys: {e}")
@@ -320,8 +358,11 @@ def resetkonosys():
 
 @app.route('/resetAD')
 def resetAD():
+    user = current_user()
+    if not user:
+        return jsonify({'variable': MSG_SESSION_EXPIRED})
     try:
-        msg_AD = reset_passwd_AD(student_info["user_name"])
+        msg_AD = reset_passwd_AD(user["user_name"])
         return jsonify({'variable': msg_AD})
     except Exception as e:
         print(f"Error in resetAD: {e}")
@@ -329,11 +370,12 @@ def resetAD():
 
 @app.route('/resetAD1')
 def resetAD1():
+    user = current_user()
+    if not user:
+        return jsonify({'variable': MSG_SESSION_EXPIRED})
     try:
-        # For teachers, extract username from email (part before @)
-        email = student_info["e-mail"]
-        username = email.split('@')[0] if '@' in email else email
-        msg_AD = reset_passwd_AD(username)
+        # For teachers, username = part of the e-mail before @ (computed at login)
+        msg_AD = reset_passwd_AD(user["user_name"])
         return jsonify({'variable': msg_AD})
     except Exception as e:
         print(f"Error in resetAD1: {e}")
@@ -341,10 +383,13 @@ def resetAD1():
 
 @app.route('/getplanning')
 def getplanning():
+    user = current_user()
+    if not user:
+        return jsonify({'error': 'Session expirée. Veuillez passer à nouveau votre carte.'})
     try:
-        # Get current student matricule
-        matricule = student_info.get("matricule", "2501101")  # Use stored matricule or working default
-        
+        # Planning of the person logged in on this kiosk (no default student)
+        matricule = user["matricule"]
+
         # Connect to Konosys database
         cnxn = connect_to_db_konosys()
         if not cnxn:
